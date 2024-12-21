@@ -171,6 +171,8 @@ for epoch in range(1, 20):
     
     if accuracy >= 99.4:
         print(f'Reached target accuracy of 99.4% at epoch {epoch}')
-        break
+        print(f'\nBest Test Accuracy: {best_accuracy:.2f}%')
+        import sys
+        sys.exit(0)  # Exit with success code
 
 print(f'\nBest Test Accuracy: {best_accuracy:.2f}%')
