@@ -109,7 +109,8 @@ test_loader = torch.utils.data.DataLoader(
 from tqdm import tqdm
 def train(model, device, train_loader, optimizer, epoch):
     model.train()
-    pbar = tqdm(train_loader)
+    pbar = tqdm(train_loader, desc=f'Epoch {epoch}', ncols=100, leave=False)
+    running_loss = 0.0
     for batch_idx, (data, target) in enumerate(pbar):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
@@ -118,7 +119,13 @@ def train(model, device, train_loader, optimizer, epoch):
         loss.backward()
         optimizer.step()
         scheduler.step()
-        pbar.set_description(desc=f'Loss={loss.item():.4f} Batch_id={batch_idx}')
+        
+        # Update running loss
+        running_loss = 0.99 * running_loss + 0.01 * loss.item()
+        
+        # Update progress bar every 10 batches
+        if batch_idx % 10 == 0:
+            pbar.set_description(f'Epoch {epoch}, Loss: {running_loss:.4f}')
 
 def test(model, device, test_loader):
     model.eval()
