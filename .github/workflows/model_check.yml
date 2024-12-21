@@ -17,8 +17,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install torch==1.7.0 torchvision==0.8.0 numpy==1.19.2 tqdm==4.50.0 torchsummary==1.5.1
+        pip install torch==1.7.0
         
     - name: Check model architecture
       run: |
-        python test_model.py 
+        python test_model.py
