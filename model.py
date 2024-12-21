@@ -176,4 +176,4 @@ for epoch in range(1, 20):
         print(f'\nBest Test Accuracy: {best_accuracy:.2f}%')
         break
 
-print(f'\nBest Test Accuracy is: {best_accuracy:.2f}%')
+print(f'\nBest Test Accuracy: {best_accuracy:.2f}%')
