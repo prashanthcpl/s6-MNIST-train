@@ -25,7 +25,7 @@ jobs:
         import torch
         import sys
         sys.path.append('.')
-        from s6.model import Net
+        from model import Net
         
         model = Net()
         
