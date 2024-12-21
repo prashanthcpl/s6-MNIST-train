@@ -75,3 +75,6 @@ GitHub Actions workflows verify:
 - Parameter count limits
 - Presence of BatchNorm and Dropout
 - Model forward pass functionality
+
+## Test validation
+![image](https://github.com/user-attachments/assets/cb2a2c9b-9279-4775-987f-d7b31f7b45e5)
