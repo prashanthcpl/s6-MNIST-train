@@ -160,19 +160,20 @@ best_accuracy = 0
 for epoch in range(1, 20):
     print(f'\nEpoch: {epoch}')
     train(model, device, train_loader, optimizer, epoch)
-    accuracy = test(model, device, test_loader)
     
-    metrics.add_metric('accuracy', accuracy)
+    # Evaluate on test set
+    test_accuracy = test(model, device, test_loader)
+    
+    metrics.add_metric('accuracy', test_accuracy)
     metrics.add_metric('epoch', epoch)
     
-    if accuracy > best_accuracy:
-        best_accuracy = accuracy
+    if test_accuracy > best_accuracy:
+        best_accuracy = test_accuracy
         torch.save(model.state_dict(), 'best_model.pth')
     
-    if accuracy >= 99.4:
-        print(f'Reached target accuracy of 99.4% at epoch {epoch}')
+    if test_accuracy >= 99.4:
+        print(f'Reached target accuracy of 99.4% on test set at epoch {epoch}')
         print(f'\nBest Test Accuracy: {best_accuracy:.2f}%')
-        import sys
-        sys.exit(0)  # Exit with success code
+        break
 
 print(f'\nBest Test Accuracy: {best_accuracy:.2f}%')

@@ -29,7 +29,7 @@ jobs:
         import torch
         import sys
         sys.path.append('.')
-        from s6.model import Net
+        from model import Net
         
         # Test model creation
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

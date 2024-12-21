@@ -3,7 +3,7 @@ name: Model Architecture Check
 on: [push, pull_request]
 
 jobs:
-  check-model:
+  test:
     runs-on: ubuntu-latest
     
     steps:
@@ -17,9 +17,9 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install torch torchvision
         
-    - name: Check model requirements
+    - name: Check model architecture
       run: |
         python -c "
         import torch
@@ -27,20 +27,29 @@ jobs:
         sys.path.append('.')
         from model import Net
         
-        model = Net()
+        def check_architecture():
+            model = Net()
+            
+            # Check parameter count
+            total_params = sum(p.numel() for p in model.parameters())
+            assert total_params < 20000, f'Model has {total_params} parameters, should be less than 20000'
+            
+            # Check for batch normalization
+            has_bn = any(isinstance(m, torch.nn.BatchNorm2d) for m in model.modules())
+            assert has_bn, 'Model should include BatchNormalization'
+            
+            # Check for dropout
+            has_dropout = any(isinstance(m, torch.nn.Dropout2d) for m in model.modules())
+            assert has_dropout, 'Model should include Dropout'
+            
+            # Check for GAP and no FC
+            has_gap = any(isinstance(m, torch.nn.AvgPool2d) for m in model.modules())
+            has_fc = any(isinstance(m, torch.nn.Linear) for m in model.modules())
+            assert has_gap, 'Model should use Global Average Pooling'
+            assert not has_fc, 'Model should not use Fully Connected layers'
+            
+            print('✓ Model architecture requirements met')
+            print(f'Total parameters: {total_params}')
         
-        # Check total parameters
-        total_params = sum(p.numel() for p in model.parameters())
-        assert total_params < 20000, f'Model has {total_params} parameters, should be less than 20000'
-        
-        # Check for batch normalization
-        has_bn = any(isinstance(m, torch.nn.BatchNorm2d) for m in model.modules())
-        assert has_bn, 'Model should include BatchNormalization'
-        
-        # Check for dropout
-        has_dropout = any(isinstance(m, torch.nn.Dropout2d) for m in model.modules())
-        assert has_dropout, 'Model should include Dropout'
-        
-        print('✓ All architecture checks passed')
-        print(f'Total parameters: {total_params}')
+        check_architecture()
         "
