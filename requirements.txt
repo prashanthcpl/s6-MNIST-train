@@ -3,3 +3,4 @@ torchvision>=0.8.0
 numpy>=1.19.2
 tqdm>=4.50.0
 torchsummary>=1.5.1 
+six>=1.16.0
