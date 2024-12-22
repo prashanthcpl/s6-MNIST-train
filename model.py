@@ -7,6 +7,12 @@ from torchvision import datasets, transforms
 from collections import defaultdict
 import numpy as np
 
+# Fix for urllib.error.HTTPError: HTTP Error 403: Forbidden in github actions
+from six.moves import urllib
+opener = urllib.request.build_opener()
+opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+urllib.request.install_opener(opener)
+
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
@@ -52,7 +58,7 @@ class Net(nn.Module):
         x = self.conv6(x)
         x = self.gap(x)
         x = x.view(-1, 10)
-        return F.log_softmax(x, dim=1)
+        return F.log_softmax(x, dim=1) #
 
 # Training metrics collector
 class MetricsCollector:
@@ -74,6 +80,8 @@ metrics = MetricsCollector()
 from torchsummary import summary
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
+
+
 model = Net().to(device)
 summary(model, input_size=(1, 28, 28))
 total_params = sum(p.numel() for p in model.parameters())
@@ -109,7 +117,8 @@ test_loader = torch.utils.data.DataLoader(
 from tqdm import tqdm
 def train(model, device, train_loader, optimizer, epoch):
     model.train()
-    pbar = tqdm(train_loader)
+    pbar = tqdm(train_loader, desc=f'Epoch {epoch}', ncols=100, leave=False)
+    running_loss = 0.0
     for batch_idx, (data, target) in enumerate(pbar):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
@@ -118,7 +127,13 @@ def train(model, device, train_loader, optimizer, epoch):
         loss.backward()
         optimizer.step()
         scheduler.step()
-        pbar.set_description(desc=f'Loss={loss.item():.4f} Batch_id={batch_idx}')
+        
+        # Update running loss
+        running_loss = 0.99 * running_loss + 0.01 * loss.item()
+        
+        # Update progress bar every 10 batches
+        if batch_idx % 10 == 0:
+            pbar.set_description(f'Epoch {epoch}, Loss: {running_loss:.4f}')
 
 def test(model, device, test_loader):
     model.eval()
@@ -138,6 +153,7 @@ def test(model, device, test_loader):
     print(f'Test set: Average loss: {test_loss:.4f}, Accuracy: {correct}/{len(test_loader.dataset)} ({accuracy:.2f}%)')
     return accuracy
 
+    
 model = Net().to(device)
 optimizer = optim.SGD(model.parameters(), lr=0.05, momentum=0.9, weight_decay=5e-4)
 scheduler = optim.lr_scheduler.OneCycleLR(
@@ -153,17 +169,20 @@ best_accuracy = 0
 for epoch in range(1, 20):
     print(f'\nEpoch: {epoch}')
     train(model, device, train_loader, optimizer, epoch)
-    accuracy = test(model, device, test_loader)
     
-    metrics.add_metric('accuracy', accuracy)
+    # Evaluate on test set
+    test_accuracy = test(model, device, test_loader)
+    
+    metrics.add_metric('accuracy', test_accuracy)
     metrics.add_metric('epoch', epoch)
     
-    if accuracy > best_accuracy:
-        best_accuracy = accuracy
+    if test_accuracy > best_accuracy:
+        best_accuracy = test_accuracy
         torch.save(model.state_dict(), 'best_model.pth')
     
-    if accuracy >= 99.4:
-        print(f'Reached target accuracy of 99.4% at epoch {epoch}')
+    if test_accuracy >= 99.4:
+        print(f'Reached target accuracy of 99.4% on test set at epoch {epoch}')
+        print(f'\nBest Test Accuracy: {best_accuracy:.2f}%')
         break
 
 print(f'\nBest Test Accuracy: {best_accuracy:.2f}%')
