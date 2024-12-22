@@ -52,7 +52,7 @@ class Net(nn.Module):
         x = self.conv6(x)
         x = self.gap(x)
         x = x.view(-1, 10)
-        return F.log_softmax(x, dim=1)
+        return F.log_softmax(x, dim=1) #
 
 # Training metrics collector
 class MetricsCollector:
@@ -145,15 +145,17 @@ def test(model, device, test_loader):
     print(f'Test set: Average loss: {test_loss:.4f}, Accuracy: {correct}/{len(test_loader.dataset)} ({accuracy:.2f}%)')
     return accuracy
 
-model = Net().to(device)
-optimizer = optim.SGD(model.parameters(), lr=0.05, momentum=0.9, weight_decay=5e-4)
-scheduler = optim.lr_scheduler.OneCycleLR(
-    optimizer,
-    max_lr=0.05,
-    epochs=20,
-    steps_per_epoch=len(train_loader),
-    pct_start=0.2,
-    anneal_strategy='cos'
+# This block is not executed when imported as a module from test_model.py. It was causing unintended run of the model in github actions.
+if __name__ == '__main__':
+    model = Net().to(device)
+    optimizer = optim.SGD(model.parameters(), lr=0.05, momentum=0.9, weight_decay=5e-4)
+    scheduler = optim.lr_scheduler.OneCycleLR(
+        optimizer,
+        max_lr=0.05,
+        epochs=20,
+        steps_per_epoch=len(train_loader),
+        pct_start=0.2,
+        anneal_strategy='cos'
 )
 
 best_accuracy = 0
