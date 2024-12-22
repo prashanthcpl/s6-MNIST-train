@@ -7,6 +7,12 @@ from torchvision import datasets, transforms
 from collections import defaultdict
 import numpy as np
 
+# Fix for urllib.error.HTTPError: HTTP Error 403: Forbidden in github actions
+from six.moves import urllib
+opener = urllib.request.build_opener()
+opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+urllib.request.install_opener(opener)
+
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
